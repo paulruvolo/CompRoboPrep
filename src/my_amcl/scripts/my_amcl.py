@@ -32,6 +32,7 @@ class MyAMCL:
 	def __init__(self):
 		self.initialized = False
 		rospy.init_node('my_amcl')
+		print "MY AMCL initialized"
 		# todo make this static
 		self.n_particles = 100
 		self.alpha1 = 0.2
