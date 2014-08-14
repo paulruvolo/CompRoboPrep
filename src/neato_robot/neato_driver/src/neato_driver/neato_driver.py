@@ -132,9 +132,9 @@ xv11_charger_info = [ "FuelPercent",
 
 class xv11():
 
-    def __init__(self,port='poop'):
+    def __init__(self,port):
         self.port = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        self.port.connect(('10.7.8.47',7777))
+        self.port.connect((port,7777))
         self.port.settimeout(10)
         # Storage for motor and sensor information
         self.state = {"LeftWheel_PositionInMM": 0, "RightWheel_PositionInMM": 0}
