@@ -31,6 +31,7 @@ ROS node for Neato XV-11 Robot Vacuum.
 
 __author__ = "ferguson@cs.albany.edu (Michael Ferguson)"
 
+import time
 import roslib; roslib.load_manifest("neato_node")
 import rospy
 from math import sin,cos
@@ -67,7 +68,6 @@ class NeatoNode:
         self.x = 0                  # position in xy plane
         self.y = 0
         self.th = 0
-        then = rospy.Time.now()
 
         # things that don't ever change
         scan_link = rospy.get_param('~frame_id','base_laser_link')
@@ -83,42 +83,34 @@ class NeatoNode:
         r = rospy.Rate(5)
         rospy.sleep(4)
         self.robot.requestScan()
+        scan.header.stamp = rospy.Time.now()
+        last_motor_time = rospy.Time.now()
+        total_dth = 0.0
         while not rospy.is_shutdown():
-	    #print "in main loop"
-            # prepare laser scan
-            scan.header.stamp = rospy.Time.now()    
-	    #print "getting scan ranges"
-            scan.ranges = self.robot.getScanRanges()
+            (scan.ranges, scan.intensities) = self.robot.getScanRanges()
 
-	    print "got scan ranges"
             # get motor encoder values
-            
-            
+            curr_motor_time = rospy.Time.now()
             left, right = self.robot.getMotors()
-	    
+
             # send updated movement commands
             self.robot.setMotors(self.cmd_vel[0], self.cmd_vel[1], max(abs(self.cmd_vel[0]),abs(self.cmd_vel[1])))
-            
-            # ask for the next scan while we finish processing stuff
-            self.robot.requestScan()
-            
-            # now update position information
 
-            dt = (scan.header.stamp - then).to_sec()
-            then = scan.header.stamp
+            # now update position information
+            dt = (curr_motor_time - last_motor_time).to_sec()
+            last_motor_time = curr_motor_time
 
             d_left = (left - encoders[0])/1000.0
             d_right = (right - encoders[1])/1000.0
-            print left, right, "THIS IS THE result of get motor"
+
             encoders = [left, right]
-            
-	    
             dx = (d_left+d_right)/2
             dth = (d_right-d_left)/(BASE_WIDTH/1000.0)
+            total_dth += dth
 
             x = cos(dth)*dx
             y = -sin(dth)*dx
-            print self.x, self.y
+
             self.x += cos(self.th)*x - sin(self.th)*y
             self.y += sin(self.th)*x + cos(self.th)*y
             self.th += dth
@@ -129,27 +121,23 @@ class NeatoNode:
             quaternion.w = cos(self.th/2.0)
 
             # prepare odometry
-            odom.header.stamp = rospy.Time.now()
+            odom.header.stamp = curr_motor_time
             odom.pose.pose.position.x = self.x
             odom.pose.pose.position.y = self.y
             odom.pose.pose.position.z = 0
             odom.pose.pose.orientation = quaternion
             odom.twist.twist.linear.x = dx/dt
             odom.twist.twist.angular.z = dth/dt
+            self.odomBroadcaster.sendTransform( (self.x, self.y, 0), (quaternion.x, quaternion.y, quaternion.z, quaternion.w), curr_motor_time, "base_link", "odom" )
+            self.odomPub.publish(odom)
 
             # publish everything
-            self.odomBroadcaster.sendTransform( (self.x, self.y, 0), (quaternion.x, quaternion.y, quaternion.z, quaternion.w),
-               then, "base_link", "odom" )
-            
             self.scanPub.publish(scan)
-            self.odomPub.publish(odom)
+            self.robot.requestScan()
+            scan.header.stamp = rospy.Time.now()
 
             # wait, then do it again
             r.sleep()
-
-        # shut down
-        self.robot.setLDS("off")
-        self.robot.setTestMode("off") 
 
     def cmdVelCb(self,req):
         #print "RECEIVED CMD DATA"

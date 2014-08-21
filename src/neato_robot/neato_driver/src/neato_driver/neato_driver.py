@@ -25,6 +25,10 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#
+# TODO: make sure we don't use listing[-1] without checking if the list is empty
+#
+
 """
 neato_driver.py is a generic driver for the Neato XV-11 Robotic Vacuum.
 ROS Bindings can be found in the neato_node package.
@@ -165,72 +169,91 @@ class xv11():
 
     def requestScan(self):
         """ Ask neato for an array of scan reads. """
-        #self.port.flushInput()
         self.port.send("getldsscan\r\n")
-        #print "REQUEST SCAN SUCCESSFUL"
+
+    @staticmethod
+    def filter_outliers(ranges,intensities):
+        # debug: turn off filtering for now
+        #return (ranges,intensities)
+        if len(ranges) == 0:
+            return (ranges,intensities)
+        for i in range(len(ranges)):
+            previous = (i-1)%len(ranges)
+            next = (i+1)%len(ranges)
+            if (ranges[previous] == 0 and ranges[next] == 0) or intensities[i]< 15:
+                ranges[i] = 0.0
+                intensities[i] = 0.0
+        return (ranges,intensities)
 
     def getScanRanges(self):
         """ Read values of a scan -- call requestScan first! """
         ranges = list()
-        angle = 0
+        intensities = list()
+
         try:
-            line = self.port.recv(16384)
-            listing = [s.strip() for s in line.splitlines()]
-            #print listing[1:5], "OUR SCAN DATA"
+            remainder = ""
+            found_start_token = False
+            while not(found_start_token):
+                line = self.port.recv(1024)
+                line = remainder + line
+                remainder = ""
+                listing = [s.strip() for s in line.splitlines()]
+                if not(line.endswith('\n')) and len(listing):
+                    remainder = listing[-1]
+                    listing = listing[0:-1]
 
-            curr = 0            
-            for entry in listing:
-                curr += 1
-                if len(entry) > 20:
-                    break
-            while (len(listing) - curr < 360):
-                line = self.port.recv(8192)
-                listing += [s.strip() for s in line.splitlines()]
-            #print "number of entries " + str(len(listing) - curr)
-            for i in range(curr,len(listing)):
-                entry = listing[i]
-                vals = entry.split(',')
-                
-                try:
-                    a = int(vals[0])
-                    r = int(vals[1])
-                    ranges.append(r/1000.0)
-               #     print angle , r/1000.0, vals[3]
-                except:
-                    ranges.append(0)    
-                angle += 1
-            
-            return ranges
+                for i in range(len(listing)):
+                    entry = listing[i]
+                    if entry.startswith('AngleInDegrees') and (len(listing)-1>i or line.endswith('\n')):
+                        listing = listing[i+1:]
+                        found_start_token = True
+                        break
 
-	    
-            #print "GetScanRange readLine succesful"
+            if len(listing) and not(line.endswith('\n')):
+                remainder = listing[-1]
+                listing = listing[0:-1]
+            else:
+                remainder = ""
+
+            while True:
+                for i in range(len(listing)):
+                    entry = listing[i]
+                    vals = entry.split(',')
+                    try:
+                        a = int(vals[0])
+                        r = int(vals[1])
+                        intensity = int(vals[2])
+                        if len(ranges) > a:
+                            # got a value we thought we lost
+                            ranges[a] = r/1000.0
+                            intensities[a] = intensity
+                        else:
+                            ranges.append(r/1000.0)
+                            intensities.append(intensity)
+                    except:
+                        ranges.append(0.0)
+                        intensities.append(0.0)
+                        # should not happen too much... debug if it does
+                        pass
+                    if len(ranges) >= 360:
+                        return xv11.filter_outliers(ranges, intensities)
+
+                listing = []
+                line = self.port.recv(1024)
+                listing = [s.strip() for s in line.splitlines()]
+                if len(listing) > 0:
+                    listing[0] = remainder + listing[0]
+                    remainder = ""
+
+                if not(line.endswith('\n')) and len(listing):
+                    remainder = listing[-1]
+                    listing = listing[0:-1]
+                else:
+                    remainder = ""
+            return xv11.filter_outliers(ranges, intensities)
         except:
             print "READLINE FAILED"
-            return []
-            """
-        while line.split(",")[0] != "AngleInDegrees":
-            try:
-                line = self.port.readline()
-                print "TRYING FIRST WHILE LOOP"
-            except:
-                return []
-        while angle < 360:
-            try:
-                vals = self.port.readline()
-                print "WITHIN SECOND WHILE LOOP READING LINE"
-            except:
-                pass
-            vals = vals.split(",")
-            print "WITHIN SECOND WHILE LOOP"
-            #print angle, vals
-            try:
-                a = int(vals[0])
-                r = int(vals[1])
-                ranges.append(r/1000.0)
-            except:
-                ranges.append(0)
-                """
-        
+            return ([],[])        
         
 
     def setMotors(self, l, r, s):
@@ -241,15 +264,15 @@ class xv11():
         #first time a 0-velocity is sent in, a velocity of 1,1,1 is sent. Then, 
         #the zero is sent. This effectively causes the robot to stop instantly.
         if (int(l) == 0 and int(r) == 0 and int(s) == 0):
-            if (not self.stop_state):
+            if not(self.stop_state):
+                self.port.send("setmotor 1 1 1\r\n")
                 self.stop_state = True
-            l = 1
-            r = 1
-            s = 1
+            else:
+                self.port.send("setmotor 0 0 0\r\n")
+
         else:
             self.stop_state = False
-
-        self.port.send("setmotor "+str(int(l))+" "+str(int(r))+" "+str(int(s))+"\r\n")
+            self.port.send("setmotor "+str(int(l))+" "+str(int(r))+" "+str(int(s))+"\r\n")
 
     def getMotors(self):
         """ Update values for motors in the self.state dictionary.
@@ -257,45 +280,36 @@ class xv11():
         #self.port.flushInput()
         self.port.send("getmotors\r\n")
 
-        line = self.port.recv(4096)
+        line = self.port.recv(1024)
         listing = [s.strip() for s in line.splitlines()]
-        while (len(listing) < 14):
-                line = self.port.recv(4096)
+        if not(line.endswith('\n')) and len(listing):
+            remainder = listing[-1]
+            listing = listing[0:-1]
+        else:
+            remainder = ""
+
+        while (len(listing) < 17):
+                line = remainder + self.port.recv(1024)
+                remainder = ""
                 listing += [s.strip() for s in line.splitlines()]
+                if not(line.endswith('\n')) and len(listing):
+                    remainder = listing[-1]
+                    listing = listing[0:-1]
+                else:
+                    remainder = ""
+
         for i in range(len(listing)-1):
-            #print listing[i+1], "Our motor entry"
             try:
                 values = listing[i+1].split(',')
-
-                self.state[values[0]] = int(values[1])
-            except:
-                print "GOT EXCEPTION " + listing[i+1] + str(values)
-                pass
-            print self.state["LeftWheel_PositionInMM"]
-        return [self.state["LeftWheel_PositionInMM"],self.state["RightWheel_PositionInMM"]]
-
-
-
-        """
-        line = self.port.readline()
-        while line.split(",")[0] != "Parameter":
-            try:
-                line = self.port.readline()
-            except:
-                return [0,0]
-
-        for i in range(len(xv21_motor_info)):
-
-            
-            try:
-                values = self.port.readline().split(",")
                 self.state[values[0]] = int(values[1])
             except:
                 pass
+
         return [self.state["LeftWheel_PositionInMM"],self.state["RightWheel_PositionInMM"]]
-        """
+
 
     def getAnalogSensors(self):
+        print "NOT CURRENTLY SUPPORTED"
         """ Update values for analog sensors in the self.state dictionary. """
         self.port.write("getanalogsensors\n")
         line = self.port.readline()
