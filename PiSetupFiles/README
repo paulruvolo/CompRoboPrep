@@ -1,0 +1,12 @@
+To setup a Pi:
+
+Copy the files into the following locations on the Pi:
+interfaces -> /etc/network/interfaces (must use sudo)
+rc.local -> /etc/rc.local (must use sudo)
+wpa_supplicant.conf -> /etc/wpa_supplicant/wpa_supplicant.conf (must use sudo)
+tcp_serial_redirect0.py -> ~pi/tcp_serial_redirect0.py
+tcp_serial_redirect_wrapper.py -> ~pi/tcp_serial_redirect_wrapper.py
+
+To get a static IP Address:
+
+Send MAC address to Mike Horne so he can setup a DHCP reservation for OLIN-ROBOTICS

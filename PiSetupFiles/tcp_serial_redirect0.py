@@ -12,11 +12,32 @@ import threading
 import socket
 import codecs
 import serial
+
 try:
     True
 except NameError:
     True = 1
     False = 0
+
+def connect_to_serial():
+    # connect to serial port
+    possible_ports = ['/dev/ttyUSB0','/dev/ttyUSB1']
+    ser = serial.Serial()
+    ser.baudrate = 115200
+    ser.parity   = 'N'
+    ser.rtscts   = False
+    ser.xonxoff  = options.xonxoff
+    ser.timeout  = 1     # required so that the reader thread can exit
+
+    while True:
+	for p in possible_ports:
+	    ser.port = p
+	    try:
+		ser.open()
+		print "Connected on port: " + p
+		return ser
+	    except:
+		time.sleep(1)
 
 class Redirector:
     def __init__(self, serial_instance, socket, ser_newline=None, net_newline=None, spy=False):
@@ -125,7 +146,6 @@ class Redirector:
 
 if __name__ == '__main__':
     import optparse
-    print "TEST"
     parser = optparse.OptionParser(
         usage = "%prog [options] [port [baudrate]]",
         description = "Simple Serial to Network (TCP/IP) redirector.",
@@ -292,24 +312,10 @@ it waits for the next connect.
         parser.error("Invalid value for --ser-nl. Valid are 'CR', 'LF' and 'CR+LF'/'CRLF'.")
 
     # connect to serial port
-    ser = serial.Serial()
-    ser.port     = port
-    ser.baudrate = baudrate
-    ser.parity   = options.parity
-    ser.rtscts   = options.rtscts
-    ser.xonxoff  = options.xonxoff
-    ser.timeout  = 1     # required so that the reader thread can exit
-
+    ser = connect_to_serial()
     if not options.quiet:
         sys.stderr.write("--- TCP/IP to Serial redirector --- type Ctrl-C / BREAK to quit\n")
-        sys.stderr.write("--- %s %s,%s,%s,%s ---\n" % (ser.portstr, ser.baudrate, 8, ser.parity, 1))
-
-    try:
-        ser.open()
-    except serial.SerialException, e:
-        sys.stderr.write("Could not open serial port %s: %s\n" % (ser.portstr, e))
-        sys.exit(1)
-
+        
     if options.rts_state is not None:
         ser.setRTS(options.rts_state)
 
@@ -317,6 +323,7 @@ it waits for the next connect.
         ser.setDTR(options.dtr_state)
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     srv.bind( ('', options.local_port) )
     srv.listen(1)
     while True:
@@ -338,10 +345,7 @@ it waits for the next connect.
             connection.close()
 	    ser.write('\r\n')
 	    ser.write('testmode off\r\n')
-        except KeyboardInterrupt:
-            break
-        except socket.error, msg:
-            sys.stderr.write('ERROR: %s\n' % msg)
-
+	except:
+	    break
     sys.stderr.write('\n--- exit ---\n')
 

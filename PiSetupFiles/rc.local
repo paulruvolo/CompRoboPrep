@@ -14,6 +14,6 @@
 # Print the IP address
 _IP=$(hostname -I) || true
 echo $_IP
-python ~pi/tcp_serial_redirect0.py "/dev/ttyUSB0" 115200 &
+python ~pi/tcp_serial_redirect_wrapper.py &
 #raspivid -n -t 99999999 -h 480 -w 640 -fps 30 -hf -b 2000000 -o - |  gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=1 pt=96 ! gdppay ! tcpserversink host=$_IP port=5001 &
 exit 0
