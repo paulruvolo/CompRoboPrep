@@ -193,8 +193,12 @@ class xv11():
         try:
             remainder = ""
             found_start_token = False
+            print "looking for starting token"
             while not(found_start_token):
                 line = self.port.recv(1024)
+                if line.find('Unknown Cmd') != -1:
+                    # something weird happened bail
+                    return ([],[])
                 line = remainder + line
                 remainder = ""
                 listing = [s.strip() for s in line.splitlines()]
@@ -208,7 +212,7 @@ class xv11():
                         listing = listing[i+1:]
                         found_start_token = True
                         break
-
+            print "found starting token"
             if len(listing) and not(line.endswith('\n')):
                 remainder = listing[-1]
                 listing = listing[0:-1]
@@ -252,7 +256,11 @@ class xv11():
                     remainder = ""
             return xv11.filter_outliers(ranges, intensities)
         except:
+            print ranges
+            print intensities
+            print listing
             print "READLINE FAILED"
+            exit(0)
             return ([],[])        
         
 
@@ -281,6 +289,9 @@ class xv11():
         self.port.send("getmotors\r\n")
 
         line = self.port.recv(1024)
+        if line.find('Unknown Cmd') != -1:
+            # something weird happened bail
+            raise IOError('Get Motors Failed')
         listing = [s.strip() for s in line.splitlines()]
         if not(line.endswith('\n')) and len(listing):
             remainder = listing[-1]

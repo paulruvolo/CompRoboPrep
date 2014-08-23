@@ -30,7 +30,7 @@
     <param name="map_update_distance_thresh" value="0.4"/>
     <param name="map_update_angle_thresh" value="0.06" />
     <param name="laser_min_dist" value="0.1"/>
-    <param name="laser_max_dist" value="5.0"/>
+    <param name="laser_max_dist" value="5.5"/>
     <param name="laser_z_min_value" value = "-1.0" />
     <param name="laser_z_max_value" value = "1.0" />
     
@@ -48,8 +48,6 @@
     -->
     <param name="tf_map_scanmatch_transform_frame_name" value="$(arg tf_map_scanmatch_transform_frame_name)" />
   </node>
-    
-  <!--<node pkg="tf" type="static_transform_publisher" name="map_nav_broadcaster" args="0 0 0 0 0 0 map nav 100"/>-->
 </launch>
   
   

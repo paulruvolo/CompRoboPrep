@@ -87,49 +87,57 @@ class NeatoNode:
         last_motor_time = rospy.Time.now()
         total_dth = 0.0
         while not rospy.is_shutdown():
+            t_start = time.time()
             (scan.ranges, scan.intensities) = self.robot.getScanRanges()
+            print 'Got scan ranges %f' % (time.time() - t_start)
 
             # get motor encoder values
             curr_motor_time = rospy.Time.now()
-            left, right = self.robot.getMotors()
+            t_start = time.time()
+            try:
+                left, right = self.robot.getMotors()
+                # now update position information
+                dt = (curr_motor_time - last_motor_time).to_sec()
+                last_motor_time = curr_motor_time
 
+                d_left = (left - encoders[0])/1000.0
+                d_right = (right - encoders[1])/1000.0
+
+                encoders = [left, right]
+                dx = (d_left+d_right)/2
+                dth = (d_right-d_left)/(BASE_WIDTH/1000.0)
+                total_dth += dth
+
+                x = cos(dth)*dx
+                y = -sin(dth)*dx
+
+                self.x += cos(self.th)*x - sin(self.th)*y
+                self.y += sin(self.th)*x + cos(self.th)*y
+                self.th += dth
+
+                # prepare tf from base_link to odom
+                quaternion = Quaternion()
+                quaternion.z = sin(self.th/2.0)
+                quaternion.w = cos(self.th/2.0)
+
+                # prepare odometry
+                odom.header.stamp = curr_motor_time
+                odom.pose.pose.position.x = self.x
+                odom.pose.pose.position.y = self.y
+                odom.pose.pose.position.z = 0
+                odom.pose.pose.orientation = quaternion
+                odom.twist.twist.linear.x = dx/dt
+                odom.twist.twist.angular.z = dth/dt
+                self.odomBroadcaster.sendTransform( (self.x, self.y, 0), (quaternion.x, quaternion.y, quaternion.z, quaternion.w), curr_motor_time, "base_link", "odom" )
+                self.odomPub.publish(odom)
+                print 'Got motors %f' % (time.time() - t_start)
+            except:
+                pass
+            t_start = time.time()            
             # send updated movement commands
             self.robot.setMotors(self.cmd_vel[0], self.cmd_vel[1], max(abs(self.cmd_vel[0]),abs(self.cmd_vel[1])))
+            print 'Set motors %f' % (time.time() - t_start)
 
-            # now update position information
-            dt = (curr_motor_time - last_motor_time).to_sec()
-            last_motor_time = curr_motor_time
-
-            d_left = (left - encoders[0])/1000.0
-            d_right = (right - encoders[1])/1000.0
-
-            encoders = [left, right]
-            dx = (d_left+d_right)/2
-            dth = (d_right-d_left)/(BASE_WIDTH/1000.0)
-            total_dth += dth
-
-            x = cos(dth)*dx
-            y = -sin(dth)*dx
-
-            self.x += cos(self.th)*x - sin(self.th)*y
-            self.y += sin(self.th)*x + cos(self.th)*y
-            self.th += dth
-
-            # prepare tf from base_link to odom
-            quaternion = Quaternion()
-            quaternion.z = sin(self.th/2.0)
-            quaternion.w = cos(self.th/2.0)
-
-            # prepare odometry
-            odom.header.stamp = curr_motor_time
-            odom.pose.pose.position.x = self.x
-            odom.pose.pose.position.y = self.y
-            odom.pose.pose.position.z = 0
-            odom.pose.pose.orientation = quaternion
-            odom.twist.twist.linear.x = dx/dt
-            odom.twist.twist.angular.z = dth/dt
-            self.odomBroadcaster.sendTransform( (self.x, self.y, 0), (quaternion.x, quaternion.y, quaternion.z, quaternion.w), curr_motor_time, "base_link", "odom" )
-            self.odomPub.publish(odom)
 
             # publish everything
             self.scanPub.publish(scan)
