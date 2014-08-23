@@ -256,11 +256,6 @@ class xv11():
                     remainder = ""
             return xv11.filter_outliers(ranges, intensities)
         except:
-            print ranges
-            print intensities
-            print listing
-            print "READLINE FAILED"
-            exit(0)
             return ([],[])        
         
 
