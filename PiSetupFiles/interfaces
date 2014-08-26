@@ -7,4 +7,5 @@ allow-hotplug wlan0
 auto wlan0
 
 iface wlan0 inet dhcp
+wpa-debug-level 3
 wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
