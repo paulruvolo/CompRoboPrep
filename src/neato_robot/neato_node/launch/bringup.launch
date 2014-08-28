@@ -1,6 +1,12 @@
 <launch>
   <arg name="use_sim_time" value="false"/>
-  <include file="$(find neato_node)/launch/bringup_minimal.launch"/>
+  <arg name="host"/>
+  <include file="$(find neato_node)/launch/bringup_minimal.launch">
+	<arg name="host" value="$(arg host)"/>
+  </include>
 <!-- todo specify IP to gscam --> 
-  <include file="$(find gscam)/examples/raspi_nodelet.launch"/>
+  <include file="$(find gscam)/examples/raspi_nodelet.launch">
+	<arg name="host" value="$(arg host)"/>
+  </include>
+
 </launch>

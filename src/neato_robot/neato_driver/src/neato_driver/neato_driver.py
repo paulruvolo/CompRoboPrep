@@ -180,7 +180,7 @@ class xv11():
         for i in range(len(ranges)):
             previous = (i-1)%len(ranges)
             next = (i+1)%len(ranges)
-            if (ranges[previous] == 0 and ranges[next] == 0) or intensities[i]< 15:
+            if (ranges[previous] == 0 and ranges[next] == 0) or intensities[i] < 10:
                 ranges[i] = 0.0
                 intensities[i] = 0.0
         return (ranges,intensities)
