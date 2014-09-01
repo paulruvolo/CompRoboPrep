@@ -330,6 +330,7 @@ it waits for the next connect.
         try:
             sys.stderr.write("Waiting for connection on %s...\n" % options.local_port)
             connection, addr = srv.accept()
+	    connection.settimeout(60)
             sys.stderr.write('Connected by %s\n' % (addr,))
             # enter network <-> serial loop
             r = Redirector(
