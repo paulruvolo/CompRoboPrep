@@ -11,11 +11,13 @@
 #
 # By default this script does nothing.
 
+# uncomment this line to use adhoc network... also need to modify /etc/network/interfaces
+#~pi/ad_hoc_rc.local
+
 # Print the IP address
 _IP=$(hostname -I) || true
 echo $_IP
 sudo python -u ~pi/monitor_wireless.py 2>&1 | tee ~pi/monitor.out &
-#sudo python -u ~pi/preauth.py 2>&1 | tee ~pi/preauth.out &
 sudo python -u ~pi/tcp_serial_redirect_wrapper.py 2>&1 | tee ~pi/redirector.out &
-#raspivid -n -t 99999999 -h 480 -w 640 -fps 30 -hf -b 2000000 -o - |  gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=1 pt=96 ! gdppay ! tcpserversink host=$_IP port=5001 &
+sudo ~pi/video_wrapper.sh 2>&1 | tee ~pi/video.out &
 exit 0

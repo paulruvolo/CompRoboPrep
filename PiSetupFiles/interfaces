@@ -6,6 +6,10 @@ iface eth0 inet dhcp
 allow-hotplug wlan0
 auto wlan0
 
+# uncomment these lines to use ad-hoc network
+#iface wlan0 inet manual
+
+# uncomment these lines to use OLIN-ROBOTICS
 iface wlan0 inet dhcp
 wpa-debug-level 3
 wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
