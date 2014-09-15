@@ -17,6 +17,7 @@
 # Print the IP address
 _IP=$(hostname -I) || true
 echo $_IP
+# comment this next line out if doing adhoc
 sudo python -u ~pi/monitor_wireless.py 2>&1 | tee ~pi/monitor.out &
 sudo python -u ~pi/tcp_serial_redirect_wrapper.py 2>&1 | tee ~pi/redirector.out &
 sudo ~pi/video_wrapper.sh 2>&1 | tee ~pi/video.out &
