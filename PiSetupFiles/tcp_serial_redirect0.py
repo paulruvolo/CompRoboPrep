@@ -12,6 +12,7 @@ import threading
 import socket
 import codecs
 import serial
+from os import system
 
 try:
     True
@@ -125,6 +126,15 @@ class Redirector:
 
 		if data.endswith('\n'):
 		    print "writing!" + data
+		    # these commands are special
+		    if data.find('shutdown') != -1:
+			system('shutdown -h now &')
+		    elif data.find('adhocwireless') != -1:
+			system('~pi/switch_to_adhoc.pl &')
+			break
+		    elif data.find('normalwireless') != -1:
+			system('~pi/switch_to_normal.sh &')
+			break
 		    self.serial.write(data)                 # get a bunch of bytes and send them
                 # the spy shows what's on the serial port, so log it after converting newlines
                 if self.spy:
