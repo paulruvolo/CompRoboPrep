@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+# shutdown wireless monitoring
+system("ps axww | grep monitor_wireless | awk \'{ print \$1 }\' | xargs kill");
+
 # override
 system('ifdown wlan0');
 
