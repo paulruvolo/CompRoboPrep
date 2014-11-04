@@ -2,4 +2,4 @@
 
 (sudo killall raspivid || true)
 (sudo killall video_wrapper.sh || true)
-sudo ./video_wrapper.sh "$1" &
+sudo ~pi/video_wrapper.sh "$1" &
