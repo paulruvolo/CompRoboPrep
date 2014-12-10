@@ -13,7 +13,6 @@ import socket
 import codecs
 import serial
 from os import system
-
 try:
     True
 except NameError:
@@ -131,6 +130,13 @@ class Redirector:
 			system('shutdown -h now &')
 		    elif data.find('adhocwireless') != -1:
 			system('~pi/switch_to_adhoc.pl &')
+			break
+		    elif data.find('setvideomode') != -1:
+			newmode = data[data.find('setvideomode')+len('setvideomode'):]
+			newmode = newmode[:newmode.find('\n')]
+			print '~pi/switch_video_mode.sh "' + newmode + '" &'
+			system('~pi/switch_video_mode.sh "' + newmode + '" &')
+			print "done"
 			break
 		    elif data.find('normalwireless') != -1:
 			system('~pi/switch_to_normal.sh &')

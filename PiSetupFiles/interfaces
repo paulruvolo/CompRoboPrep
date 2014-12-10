@@ -12,4 +12,5 @@ auto wlan0
 # uncomment these lines to use OLIN-ROBOTICS
 iface wlan0 inet dhcp
 wpa-debug-level 3
+post-up iwconfig wlan0 power off
 wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
