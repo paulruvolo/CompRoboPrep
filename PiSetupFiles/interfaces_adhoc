@@ -5,8 +5,11 @@ iface eth0 inet dhcp
 
 allow-hotplug wlan0
 auto wlan0
-
 iface wlan0 inet static
-address 192.168.17.202
-netmask 255.255.254.0
-broadcast 192.168.17.255
+address 192.168.2.2
+netmask 255.255.255.0
+wireless-mode ad-hoc
+wireless-channel 11
+wireless-ap AA:AA:AA:AA:AA:AA
+wireless-essid gumstix-network
+#post-up iwconfig wlan0 power off
