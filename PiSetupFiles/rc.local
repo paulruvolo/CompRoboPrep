@@ -18,7 +18,10 @@
 _IP=$(hostname -I) || true
 echo $_IP
 # comment this next line out if doing adhoc
-#sudo python ~pi/monitor_wireless.py &
+sudo ~pi/test_simple_server.py &
 sudo python ~pi/tcp_serial_redirect_wrapper.py &
-sudo ~pi/video_wrapper.sh &
+#sudo ~pi/video_wrapper.sh &
+sudo ~pi/start_jpg_stream.sh &
+sudo python ~pi/pi_control_gui.py &
+/etc/switch.sh &
 exit 0
