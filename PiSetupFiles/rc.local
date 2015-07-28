@@ -21,4 +21,5 @@ sudo python ~pi/tcp_serial_redirect_wrapper.py &
 sudo ~pi/start_jpg_stream.sh &
 sudo python ~pi/pi_control_gui.py &
 /etc/switch.sh &
+sudo ~pi/detect_botvac.sh &
 exit 0
