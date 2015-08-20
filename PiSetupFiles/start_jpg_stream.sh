@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VIDEOMODE="-ex sports -y 480 -x 640 -fps 10 -mm matrix -rot 180"
+VIDEOMODE="-ex sports -awb off -y 480 -x 640 -fps 10 -mm matrix -rot 180"
 echo $#
 if [ $# = 1 ]; then
 	VIDEOMODE=$1
