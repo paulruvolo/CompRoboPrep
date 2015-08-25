@@ -1,0 +1,1 @@
+/usr/bin/gcc  -fPIC  -Wno-multichar -Wall -Wno-unused-but-set-variable -fPIC -O3 -DNDEBUG   -shared -Wl,-soname,libvcsm.so -o ../../../../../../lib/libvcsm.so CMakeFiles/vcsm.dir/user-vcsm.c.o ../../../../../../lib/libvcos.so -lpthread -ldl -lrt -Wl,-rpath,/home/pi/userland/build/lib: 

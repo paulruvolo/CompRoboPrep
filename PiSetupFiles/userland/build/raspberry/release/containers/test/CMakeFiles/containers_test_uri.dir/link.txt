@@ -1,0 +1,1 @@
+/usr/bin/gcc   -Wno-multichar -Wall -Wno-unused-but-set-variable -fPIC -O3 -DNDEBUG    CMakeFiles/containers_test_uri.dir/test_uri.c.o  -o ../../../../bin/containers_test_uri -rdynamic ../../../../lib/libcontainers.so ../../../../lib/libvcos.so -lpthread -ldl -lrt -Wl,-rpath,/home/pi/userland/build/lib: 

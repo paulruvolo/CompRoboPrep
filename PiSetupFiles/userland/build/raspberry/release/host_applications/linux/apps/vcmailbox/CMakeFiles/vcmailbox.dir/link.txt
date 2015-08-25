@@ -1,0 +1,1 @@
+/usr/bin/gcc   -Wno-multichar -Wall -Wno-unused-but-set-variable -fPIC -O3 -DNDEBUG    CMakeFiles/vcmailbox.dir/vcmailbox.c.o  -o ../../../../../../bin/vcmailbox -rdynamic ../../../../../../lib/libvchostif.a ../../../../../../lib/libvchiq_arm.so ../../../../../../lib/libvcos.so -lpthread -ldl -lrt ../../../../../../lib/libvcfiled_check.a -Wl,-rpath,/home/pi/userland/build/lib: 

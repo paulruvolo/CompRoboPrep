@@ -1,0 +1,1 @@
+/usr/bin/gcc   -Wno-multichar -Wall -Wno-unused-but-set-variable -fPIC -O3 -DNDEBUG    CMakeFiles/containers_rtp_decoder.dir/rtp_decoder.c.o CMakeFiles/containers_rtp_decoder.dir/nb_io_unix.c.o  -o ../../../../bin/containers_rtp_decoder -rdynamic ../../../../lib/libcontainers.so ../../../../lib/libvcos.so -lpthread -ldl -lrt -Wl,-rpath,/home/pi/userland/build/lib: 
