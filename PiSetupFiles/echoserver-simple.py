@@ -24,10 +24,14 @@ while 1:
     system('sudo killall raspivid')
     system('sudo killall gst-launch-1.0')
     system('sudo killall mjpg_streamer')
-    cmd  = "~pi/start_gst_udp.sh " + address[0] + ' &'
+    send_port = client.recv(1024)
+    while not send_port.endswith('\n'):
+        data = client.recv(1024)
+        send_port += data
+    cmd  = "~pi/start_gst_udp.sh " + address[0] + ' ' + send_port.strip() + '&'
     source_port = None
     system(cmd)
-    p = subprocess.Popen(['tcpdump','-i','wlan0','udp','port','5000','-v'], stdout=subprocess.PIPE)
+    p = subprocess.Popen(['tcpdump','-i','wlan0','udp','port',send_port,'-v'], stdout=subprocess.PIPE)
     while True:
         line = p.stdout.readline()
 	m = re.search('raspberrypi.local.([0-9]+) ',line)
