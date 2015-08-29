@@ -327,16 +327,7 @@ it waits for the next connect.
     else:
         parser.error("Invalid value for --ser-nl. Valid are 'CR', 'LF' and 'CR+LF'/'CRLF'.")
 
-    # connect to serial port
-    ser = connect_to_serial()
-    if not options.quiet:
-        sys.stderr.write("--- TCP/IP to Serial redirector --- type Ctrl-C / BREAK to quit\n")
-        
-    if options.rts_state is not None:
-        ser.setRTS(options.rts_state)
-
-    if options.dtr_state is not None:
-        ser.setDTR(options.dtr_state)
+    ser = None
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -348,6 +339,22 @@ it waits for the next connect.
             connection, addr = srv.accept()
 	    connection.settimeout(60)
             sys.stderr.write('Connected by %s\n' % (addr,))
+            if ser != None:
+                try:
+                    ser.close()
+                except Exception as inst:
+                    print inst
+            # connect to serial port
+            ser = connect_to_serial()
+            if not options.quiet:
+                sys.stderr.write("--- TCP/IP to Serial redirector --- type Ctrl-C / BREAK to quit\n")
+
+            if options.rts_state is not None:
+                ser.setRTS(options.rts_state)
+
+            if options.dtr_state is not None:
+                ser.setDTR(options.dtr_state)
+
             # enter network <-> serial loop
             r = Redirector(
                 ser,
