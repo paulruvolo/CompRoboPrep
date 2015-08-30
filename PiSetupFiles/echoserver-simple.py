@@ -34,7 +34,7 @@ while 1:
     p = subprocess.Popen(['tcpdump','-i','wlan0','udp','port',send_port,'-v'], stdout=subprocess.PIPE)
     while True:
         line = p.stdout.readline()
-	m = re.search('raspberrypi.local.([0-9]+) ',line)
+	m = re.search('raspberrypi.*.local.([0-9]+) ',line)
 	if m:
             print m.group(1)
             source_port = m.group(1)
