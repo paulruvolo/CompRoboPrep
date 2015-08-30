@@ -51,19 +51,7 @@ while True:
 		(linkquality, err) = proc.communicate()
 		if linkquality.find('=') >=0:
 			linkquality = int(linkquality[linkquality.find('=')+1:linkquality.find('/')])
-		if linkquality > 65:
-			linkquality = 5
-		elif linkquality > 58:
-			linkquality = 4
-		elif linkquality > 50:
-			linkquality = 3
-		elif linkquality > 44:
-			linkquality = 2
-		elif linkquality > 38:
-			linkquality = 1
-		else:
-			linkquality = 0
-		my_message(lcd, ssid + " S" + str(linkquality) + "\n" + ip_address)
+		my_message(lcd, ssid + " " + str(linkquality) + "\n" + ip_address)
 	elif state == SELECT_NETWORK_MODE_STATE:
 		if network_mode == MANAGED_MODE:
 			my_message(lcd,"* OLIN-ROBOTICS\n  AD-HOC")
@@ -75,6 +63,7 @@ while True:
 		my_message(lcd,"Press select to\nShutdown")
 	elif state == VIDEO_MODE_RECONFIGURE:
 		my_message(lcd,"Reconfiguring video\nmode...")
+		system("sudo killall raspivid")
 		system("sudo killall mjpg_streamer")
 		system("sudo killall video_wrapper.sh")
 		system("sudo killall gst-launch-1.0")
@@ -100,6 +89,7 @@ while True:
 			proc = subprocess.Popen(["~pi/start_managed.sh"], stdout=subprocess.PIPE, shell=True)
 			(out, err) = proc.communicate()
 		# need to do this in order to update with new IP address (if gstreamer is running)
+		print("this does not properly support UDP gstreamer")
 		system("sudo killall gst-launch-1.0")
 		state = DISPLAY_STATE
 	elif state == VIDEO_MODE_HEADER:
