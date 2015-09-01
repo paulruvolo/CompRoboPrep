@@ -39,12 +39,14 @@ lcd = LCD.Adafruit_CharLCDPlate()
 lcd.set_backlight(True)
 import time
 
+old_backlight = -1
+
 print 'Press Ctrl-C to quit.'
 while True:
 	clock = int(time.time())%2 == 0
 	lcd.set_backlight(clock or
 			  path.exists('/dev/ttyUSB0') or
-			  path.exists('/dev/ttyUSB0'))
+			  path.exists('/dev/ttyUSB1'))
 	if state == DISPLAY_STATE:
 		proc = subprocess.Popen(["hostname -I"], stdout=subprocess.PIPE, shell=True)
 		(ip_address, err) = proc.communicate()
