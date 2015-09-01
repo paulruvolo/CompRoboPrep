@@ -3,7 +3,7 @@
 import math
 import time
 import subprocess
-from os import system
+from os import system, path
 
 import Adafruit_CharLCD as LCD
 
@@ -37,9 +37,14 @@ state = DISPLAY_STATE
 lcd = LCD.Adafruit_CharLCDPlate()
 
 lcd.set_backlight(True)
+import time
 
 print 'Press Ctrl-C to quit.'
 while True:
+	clock = int(time.time())%2 == 0
+	lcd.set_backlight(clock or
+			  path.exists('/dev/ttyUSB0') or
+			  path.exists('/dev/ttyUSB0'))
 	if state == DISPLAY_STATE:
 		proc = subprocess.Popen(["hostname -I"], stdout=subprocess.PIPE, shell=True)
 		(ip_address, err) = proc.communicate()
