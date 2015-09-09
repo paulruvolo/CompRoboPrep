@@ -8,11 +8,26 @@
 import sys
 import os
 import time
+import signal
 import threading
 import socket
 import codecs
 import serial
 from os import system
+
+ser = None
+
+def catch_SIGHUP(*args):
+    global ser
+    if ser == None:
+        print "reestablishing connection!"
+        ser = connect_to_serial()
+    if ser != None:
+	print "gracefully shutting down"
+	ser.write('\r\n')
+	ser.write('testmode off\r\n')
+	print "got the signal!"	
+
 try:
     True
 except NameError:
@@ -20,6 +35,7 @@ except NameError:
     False = 0
 
 def connect_to_serial():
+    global ser
     # connect to serial port
     possible_ports = ['/dev/ttyUSB0','/dev/ttyUSB1']
     ser = serial.Serial()
@@ -328,6 +344,8 @@ it waits for the next connect.
         parser.error("Invalid value for --ser-nl. Valid are 'CR', 'LF' and 'CR+LF'/'CRLF'.")
 
     ser = None
+
+    signal.signal(signal.SIGHUP, catch_SIGHUP)
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
