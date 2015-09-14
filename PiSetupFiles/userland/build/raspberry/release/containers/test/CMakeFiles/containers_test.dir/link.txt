@@ -1,0 +1,1 @@
+/usr/bin/gcc   -Wno-multichar -Wall -Wno-unused-but-set-variable -fPIC -O3 -DNDEBUG    CMakeFiles/containers_test.dir/test.c.o  -o ../../../../bin/containers_test -rdynamic -Wl,--no-whole-archive ../../../../lib/libcontainers.so ../../../../lib/libvcos.so -lpthread -ldl -lrt -Wl,-rpath,/home/pi/userland/build/lib: 

@@ -1,0 +1,1 @@
+/usr/bin/gcc  -fPIC  -Wno-multichar -Wall -Wno-unused-but-set-variable -fPIC -O3 -DNDEBUG   -shared -Wl,-soname,reader_asf.so -o ../../../../lib/reader_asf.so CMakeFiles/reader_asf.dir/asf_reader.c.o ../../../../lib/libcontainers.so ../../../../lib/libvcos.so -lpthread -ldl -lrt -Wl,-rpath,/home/pi/userland/build/lib: 

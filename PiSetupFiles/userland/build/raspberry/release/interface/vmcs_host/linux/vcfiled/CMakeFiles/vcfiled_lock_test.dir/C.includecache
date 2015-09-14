@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/userland/interface/vmcs_host/linux/vcfiled/vcfiled_check.h
+
+/home/pi/userland/interface/vmcs_host/linux/vcfiled/vcfiled_lock_test.c
+vcfiled_check.h
+/home/pi/userland/interface/vmcs_host/linux/vcfiled/vcfiled_check.h
+stdio.h
+-
+unistd.h
+-
+stdlib.h
+-
+string.h
+-
+stdarg.h
+-
+

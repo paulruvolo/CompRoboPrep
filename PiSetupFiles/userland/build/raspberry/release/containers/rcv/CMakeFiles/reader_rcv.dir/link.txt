@@ -1,0 +1,1 @@
+/usr/bin/gcc  -fPIC  -Wno-multichar -Wall -Wno-unused-but-set-variable -fPIC -O3 -DNDEBUG   -shared -Wl,-soname,reader_rcv.so -o ../../../../lib/reader_rcv.so CMakeFiles/reader_rcv.dir/rcv_reader.c.o ../../../../lib/libcontainers.so ../../../../lib/libvcos.so -lpthread -ldl -lrt -Wl,-rpath,/home/pi/userland/build/lib: 

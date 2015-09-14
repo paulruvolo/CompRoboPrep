@@ -1,0 +1,1 @@
+/usr/bin/gcc   -Wno-multichar -Wall -Wno-unused-but-set-variable -fPIC -O3 -DNDEBUG    CMakeFiles/containers_stream_server.dir/stream_server.c.o  -o ../../../../bin/containers_stream_server -rdynamic ../../../../lib/libcontainers.so ../../../../lib/libvcos.so -lpthread -ldl -lrt -Wl,-rpath,/home/pi/userland/build/lib: 

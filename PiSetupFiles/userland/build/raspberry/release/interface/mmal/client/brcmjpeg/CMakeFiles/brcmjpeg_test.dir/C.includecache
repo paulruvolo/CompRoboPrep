@@ -1,0 +1,30 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../../../interface/mmal/client/brcmjpeg/../../../../host_applications/linux/libs/sm/user-vcsm.h
+
+/home/pi/userland/interface/mmal/client/brcmjpeg/brcmjpeg.h
+
+/home/pi/userland/interface/mmal/client/brcmjpeg/brcmjpeg_test.c
+brcmjpeg.h
+/home/pi/userland/interface/mmal/client/brcmjpeg/brcmjpeg.h
+sys/time.h
+-
+stdlib.h
+-
+string.h
+-
+errno.h
+-
+stdio.h
+-
+stdint.h
+-
+user-vcsm.h
+-
+

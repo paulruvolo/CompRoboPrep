@@ -1,0 +1,1 @@
+/usr/bin/gcc  -fPIC  -Wno-multichar -Wall -Wno-unused-but-set-variable -fPIC -O3 -DNDEBUG   -shared -Wl,-soname,writer_dummy.so -o ../../../../lib/writer_dummy.so CMakeFiles/writer_dummy.dir/dummy_writer.c.o ../../../../lib/libcontainers.so ../../../../lib/libvcos.so -lpthread -ldl -lrt -Wl,-rpath,/home/pi/userland/build/lib: 

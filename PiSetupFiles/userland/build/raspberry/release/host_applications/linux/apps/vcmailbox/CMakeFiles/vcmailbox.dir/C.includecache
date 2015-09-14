@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/userland/host_applications/linux/apps/vcmailbox/vcmailbox.c
+stdio.h
+-
+string.h
+-
+stdlib.h
+-
+fcntl.h
+-
+unistd.h
+-
+assert.h
+-
+stdint.h
+-
+sys/mman.h
+-
+sys/ioctl.h
+-
+
