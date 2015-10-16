@@ -28,7 +28,16 @@ while 1:
     while not send_port.endswith('\n'):
         data = client.recv(1024)
         send_port += data
-    cmd  = "~pi/start_gst_udp.sh " + address[0] + ' ' + send_port.strip() + '&'
+    send_port = send_port.strip()
+    fields = send_port.split(',')
+    if len(fields) == 1:
+        send_port = fields[0]
+        video_mode = "-ex sports -awb off -mm matrix -w 640 -h 480 -fps 30 -b 2000000"
+    else:
+        send_port = fields[0]
+        video_mode = fields[1]
+    cmd  = "~pi/start_gst_udp.sh " + address[0] + ' ' + send_port + ' "' + video_mode + '"&'
+    print cmd
     source_port = None
     system(cmd)
     p = subprocess.Popen(['tcpdump','-i','wlan0','udp','port',send_port,'-v'], stdout=subprocess.PIPE)
