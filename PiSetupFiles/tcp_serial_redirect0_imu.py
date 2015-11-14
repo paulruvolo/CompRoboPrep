@@ -4,6 +4,7 @@
 # redirect data from a TCP/IP connection to a serial port and vice versa
 # requires Python 2.2 'cause socket.sendall is used
 
+
 import re
 import sys
 import os
@@ -38,9 +39,9 @@ except NameError:
 def connect_to_serial():
     global ser
     # connect to serial port
-    possible_ports = ['/dev/ttyUSB0','/dev/ttyUSB1','/dev/ttyUSB2']
+    possible_ports = ['/dev/ttyACM0','/dev/ttyUSB0','/dev/ttyUSB1']
     ser = serial.Serial()
-    ser.baudrate = 57600
+    ser.baudrate = 115200
     ser.parity   = 'N'
     ser.rtscts   = False
     ser.xonxoff  = options.xonxoff
@@ -51,6 +52,7 @@ def connect_to_serial():
 	    print p
 	    proc = subprocess.Popen("/home/pi/probe_bus.sh " + p, stdout=subprocess.PIPE, shell=True)
 	    (output, err) = proc.communicate()
+	    print output
 	    m = re.search('busnum:([0-9]*) devnum:([0-9]*)', output)
 	    if not m:
 		continue
@@ -58,15 +60,14 @@ def connect_to_serial():
 	    devnum = m.group(2)
 	    proc = subprocess.Popen("lsusb -s " + busnum + ":" + devnum, stdout=subprocess.PIPE, shell=True)
 	    (output, err) = proc.communicate()
-	    if output.find("USB-Serial (UART)") == -1:
+	    if output.find("ID 2108:") == -1:
 		continue
 	    ser.port = p
 	    try:
 		ser.open()
 		print "Connected on port: " + p
 		return ser
-	    except Exception as inst:
-		print inst
+	    except:
 		time.sleep(1)
 
 class Redirector:
@@ -135,7 +136,6 @@ class Redirector:
         while self.alive:
             try:
                 data = self.socket.recv(1024)
-		print "test"
                 if not data:
                     break
 		data = remainder + data
@@ -172,8 +172,6 @@ class Redirector:
 		    elif data.find('normalwireless') != -1:
 			system('~pi/switch_to_normal.sh &')
 			break
-		
-		    print data, len(data)
 		    self.serial.write(data)                 # get a bunch of bytes and send them
                 # the spy shows what's on the serial port, so log it after converting newlines
                 if self.spy:
@@ -288,7 +286,7 @@ it waits for the next connect.
         action = "store",
         type = 'int',
         help = "local TCP port",
-        default = 7778
+        default = 7777
     )
 
     group = optparse.OptionGroup(parser,
@@ -373,7 +371,6 @@ it waits for the next connect.
             sys.stderr.write("Waiting for connection on %s...\n" % options.local_port)
             connection, addr = srv.accept()
 	    connection.settimeout(60)
-	    connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             sys.stderr.write('Connected by %s\n' % (addr,))
             if ser != None:
                 try:
@@ -390,6 +387,7 @@ it waits for the next connect.
 
             if options.dtr_state is not None:
                 ser.setDTR(options.dtr_state)
+
             # enter network <-> serial loop
             r = Redirector(
                 ser,
