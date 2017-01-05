@@ -101,29 +101,41 @@ class Redirector:
             loop_start = time.time()
             # reset the sensor packet since it has just been blasted over UDP
             self.sensor_packet = ""
+            valid_packet = True
             self.serial_command_queue.put(("getldsscan\n",'.*ROTATION_SPEED,[0-9\.]+'))
             self.serial_command_queue.put(("getmotors\n", '.*SideBrush_mA,[0-9\.]+'))
             self.serial_command_queue.put(("getdigitalsensors\n", '.*RFRONTBIT,[0-9\.]+'))
+            self.serial_command_queue.put(("getaccel\n", '.*SumInG, [0-9\.]+'))
 	    while not self.serial_command_queue.empty():
                 next_cmd, terminal_re = self.serial_command_queue.get()
-		#print "sensor packet before writing ", next_cmd, " ", len(self.sensor_packet), self.sensor_packet
                 self.write_command_to_serial(next_cmd)
 		# need to sleep until the serial port is empty, could use a condition... for now just spin wait
+                search_count = 0
                 while True:
                     t_start = time.time()
                     m = re.findall(terminal_re, self.sensor_packet)
-                    #print 're time', terminal_re, time.time() - t_start
+                    # print 're time', terminal_re, time.time() - t_start
                     if m and self.serial_read_flushed:
                         break
                     if 'Ambiguous Cmd' in self.sensor_packet:
                         print "unexpectedly got this"
                         break
+                    search_count  += 1
+                    if search_count > 100:
+                        valid_packet = False
+                        print 'Warning:', len(self.sensor_packet)
+                        break
                     time.sleep(.001)
+                if not valid_packet:
+                    with self.serial_command_queue.mutex:
+                        self.serial_command_queue.queue.clear()
+                    break
 
-            # self.write(self.sensor_packet)
-            self.sensor_socket.sendto(self.sensor_packet, (self.client_ip, 7777))
-            print "sending sensor packet", "self.client_ip", self.client_ip, "length", len(self.sensor_packet)
-	    sleep_time = loop_start - time.time() + 0.2
+            if valid_packet:
+                # self.write(self.sensor_packet)
+                self.sensor_socket.sendto(self.sensor_packet, (self.client_ip, 7777))
+                print "sending sensor packet", "self.client_ip", self.client_ip, "length", len(self.sensor_packet)
+	    sleep_time = loop_start - time.time() + 0.1
             if sleep_time > 0:
                 print "sleeping for", sleep_time
                 time.sleep(sleep_time)
@@ -144,11 +156,7 @@ class Redirector:
                         # XXX fails for CR+LF in input when it is cut in half at the begin or end of the string
                         data = net_newline.join(data.split(ser_newline))
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
-                    self._write_lock.acquire()
-                    try:
-                        self.sensor_packet += data
-                    finally:
-                        self._write_lock.release()
+		    self.sensor_packet += data
             except socket.error, msg:
                 sys.stderr.write('ERROR: %s\n' % msg)
                 # probably got disconnected
@@ -157,11 +165,7 @@ class Redirector:
 
     def write(self, data):
         """thread safe socket write with no data escaping. used to send telnet stuff"""
-        self._write_lock.acquire()
-        try:
-            self.socket.sendall(data)
-        finally:
-            self._write_lock.release()
+        self.socket.sendall(data)
 
     def write_command_to_serial(self, cmd):
         """ cmd is a string that should be sent to the serial port """	
@@ -175,6 +179,7 @@ class Redirector:
         while self.alive:
             try:
                 data = self.socket.recv(1024)
+                print 'read something from the socket', len(data)
                 if not data:
                     break
 		data = remainder + data
@@ -202,6 +207,7 @@ class Redirector:
                 break
         self.alive = False
         self.thread_read.join()
+        self.thread_main_loop.join()
 
     def stop(self):
         """Stop copying"""
@@ -383,7 +389,11 @@ it waits for the next connect.
             sys.stderr.write("Waiting for connection on %s...\n" % options.local_port)
             connection, addr = srv.accept()
             client_ip = addr[0]
-	    connection.settimeout(60)
+
+            connection.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+	    connection.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 30)
+	    connection.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 15)
+	    #connection.settimeout(60)
             sys.stderr.write('Connected by %s\n' % (addr,))
             if ser != None:
                 try:
