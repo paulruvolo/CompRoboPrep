@@ -16,7 +16,7 @@
 _IP=$(hostname -I) || true
 echo $_IP
 sudo ~pi/make_interfaces_adhoc.sh 2>&1 | tee /etc/network/interfaces_adhoc
-sudo python ~pi/CompRoboPrep/PiSetupFiles/hybrid_serial_redirect.py &
+sudo python ~pi/CompRoboPrep/PiSetupFiles/hybrid_serial_wrapper.py &
 #sudo python ~pi/tcp_serial_redirect_wrapper.py &
 #sudo ~pi/video_wrapper.sh &
 #sudo ~pi/start_jpg_stream.sh &
