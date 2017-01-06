@@ -49,7 +49,7 @@ def connect_to_serial():
     while True:
 	for p in possible_ports:
 	    print p
-	    proc = subprocess.Popen("/home/pi/probe_bus.sh " + p, stdout=subprocess.PIPE, shell=True)
+	    proc = subprocess.Popen("/home/pi/CompRoboPrep/PiSetupFiles/probe_bus.sh " + p, stdout=subprocess.PIPE, shell=True)
 	    (output, err) = proc.communicate()
 	    m = re.search('busnum:([0-9]*) devnum:([0-9]*)', output)
 	    if not m:

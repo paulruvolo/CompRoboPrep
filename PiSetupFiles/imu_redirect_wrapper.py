@@ -3,5 +3,4 @@
 from subprocess import call
 
 while True:
-	call(['python','/home/pi/imu_redirect.py'])
-	print "blah"
+	call(['python','/home/pi/CompRoboPrep/PiSetupFiles/imu_redirect.py'])
