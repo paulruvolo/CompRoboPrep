@@ -161,6 +161,8 @@ class Redirector:
                 sys.stderr.write('ERROR: %s\n' % msg)
                 # probably got disconnected
                 break
+	    except Exception as inst:
+                sys.stderr.write('Non-socket error: %s\n' % str(inst))
         self.alive = False
 
     def write(self, data):
@@ -399,7 +401,7 @@ it waits for the next connect.
                 try:
                     ser.close()
                 except Exception as inst:
-                    print inst
+                    sys.stderr.write('ERROR: %s\n', str(inst))
             # connect to serial port
             ser = connect_to_serial()
             if not options.quiet:
@@ -425,7 +427,7 @@ it waits for the next connect.
 	    ser.write('\r\n')
 	    ser.write('testmode off\r\n')
 	except Exception as inst:
-            print 'exception:', inst
+            sys.stderr.write('ERROR: %s\n' % str(inst))
 	    break
     sys.stderr.write('\n--- exit ---\n')
 
