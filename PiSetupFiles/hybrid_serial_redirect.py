@@ -95,13 +95,14 @@ class Redirector:
             while not self.client_ip:
                 time.sleep(0.1)
             # reset all buffers
-            self.serial.flushInput()
-            self.serial.flushOutput()
+            #self.serial.flushInput()
+            #self.serial.flushOutput()
             # enqueue all relevant commands
             loop_start = time.time()
             # reset the sensor packet since it has just been blasted over UDP
             self.sensor_packet = ""
             valid_packet = True
+            last_control_z = -1
             self.serial_command_queue.put(("getldsscan\n",'.*ROTATION_SPEED,[0-9\.]+'))
             self.serial_command_queue.put(("getmotors\n", '.*SideBrush_mA,[0-9\.]+'))
             self.serial_command_queue.put(("getdigitalsensors\n", '.*RFRONTBIT,[0-9\.]+'))
@@ -113,12 +114,15 @@ class Redirector:
                 search_count = 0
                 while True:
                     t_start = time.time()
-                    m = re.findall(terminal_re, self.sensor_packet)
-                    # print 're time', terminal_re, time.time() - t_start
-                    if m and self.serial_read_flushed:
-                        break
+                    
+                    new_last_control_z = self.sensor_packet.rfind(chr(26))
+                    if new_last_control_z > last_control_z:
+                        last_control_z = new_last_control_z
+                        break 
                     if 'Ambiguous Cmd' in self.sensor_packet:
                         print "unexpectedly got this"
+                        #print self.sensor_packet
+                        valid_packet = False
                         break
                     search_count  += 1
                     if search_count > 100:
@@ -134,10 +138,9 @@ class Redirector:
             if valid_packet:
                 # self.write(self.sensor_packet)
                 self.sensor_socket.sendto(self.sensor_packet, (self.client_ip, 7777))
-                print "sending sensor packet", "self.client_ip", self.client_ip, "length", len(self.sensor_packet)
+                #print "sending sensor packet", "self.client_ip", self.client_ip, "length", len(self.sensor_packet)
 	    sleep_time = loop_start - time.time() + 0.1
             if sleep_time > 0:
-                print "sleeping for", sleep_time
                 time.sleep(sleep_time)
 
     def reader(self):
@@ -171,7 +174,7 @@ class Redirector:
 
     def write_command_to_serial(self, cmd):
         """ cmd is a string that should be sent to the serial port """	
-        print "writing!" + cmd
+        # print "writing!" + cmd
         # these commands are special
         self.serial.write(cmd)
 
@@ -181,12 +184,10 @@ class Redirector:
         while self.alive:
             try:
                 data = self.socket.recv(1024)
-                print 'read something from the socket', len(data)
                 if not data:
                     break
 		data = remainder + data
 		if remainder:
-		    print "prepending remainder " + str(remainder) + " to " + str(data)
 		    remainder = ""
 
 		if not(data.endswith('\n')):
