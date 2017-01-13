@@ -129,7 +129,7 @@ class Redirector:
                         valid_packet = False
                         print 'Warning:', len(self.sensor_packet)
                         break
-                    time.sleep(.001)
+                    time.sleep(.01)
                 if not valid_packet:
                     with self.serial_command_queue.mutex:
                         self.serial_command_queue.queue.clear()
