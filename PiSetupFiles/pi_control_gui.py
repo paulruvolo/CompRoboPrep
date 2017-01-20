@@ -140,6 +140,6 @@ while True:
 	elif (lcd.is_pressed(LCD.SELECT) or lcd.is_pressed(LCD.RIGHT)) and state == POWER_DOWN_PROMPT_STATE:
 		lcd.set_backlight(False)
 		lcd.clear()
-		system("sudo pkill -HUP -f tcp_serial_redirect0.py")
+		system("sudo pkill -HUP -f hybrid_serial_redirect.py")
 		system("shutdown -h now")
 	time.sleep(.05)
