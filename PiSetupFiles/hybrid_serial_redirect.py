@@ -16,6 +16,7 @@ import serial
 import re
 from Queue import Queue
 from os import system
+from neato_sensor_packet import NeatoSensorPacket
 
 ser = None
 
@@ -66,6 +67,9 @@ class Redirector:
 		print "flushed serial port"
         self.socket = tcp_socket
         self.sensor_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sensor_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+	self.sensor_socket.bind(('0.0.0.0',7777))
         self.ser_newline = ser_newline
         self.net_newline = net_newline
         self._write_lock = threading.Lock()
@@ -91,6 +95,7 @@ class Redirector:
         self.writer()
 
     def main_loop(self):
+        packet_parser = NeatoSensorPacket()
         while self.alive:
             while not self.client_ip:
                 time.sleep(0.1)
@@ -137,11 +142,14 @@ class Redirector:
 
             if valid_packet:
                 # self.write(self.sensor_packet)
-                self.sensor_socket.sendto(self.sensor_packet, (self.client_ip, 7777))
+		# XXX: truncating packet to test UDP forwarding
+                packet_parser.parse_packet(self.sensor_packet)
+                self.sensor_socket.sendto(packet_parser.serialized_packet, (self.client_ip, 7777))
                 #print "sending sensor packet", "self.client_ip", self.client_ip, "length", len(self.sensor_packet)
 	    sleep_time = loop_start - time.time() + 0.1
             if sleep_time > 0:
                 time.sleep(sleep_time)
+        print "unbinding!"
 
     def reader(self):
         """loop forever and copy serial->socket"""
