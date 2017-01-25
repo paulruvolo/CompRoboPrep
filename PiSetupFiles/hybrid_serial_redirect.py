@@ -427,6 +427,8 @@ it waits for the next connect.
             connection.close()
 	    ser.write('\r\n')
 	    ser.write('testmode off\r\n')
+	    system("sudo killall raspivid")
+	    system("sudo killall gst-launch-1.0")
 	except Exception as inst:
             sys.stderr.write('ERROR: %s\n' % str(inst))
 	    break
