@@ -49,16 +49,10 @@ class NeatoSensorPacket(object):
                 # something weird happened bail
                 raise IOError('Get Motors Failed')
             listing = [s.strip() for s in line.splitlines()]
-            found_start_token = False
 
-            while len(listing) < 14 or not found_start_token:
-                if not found_start_token:
-                    for i,l in enumerate(listing):
-                        if l.startswith('Parameter,Value'):
-                            found_start_token = True
-                            listing = listing[i+1:]
-                            break
-                if len(listing) >= 14:
+	    for i,l in enumerate(listing):
+                if l.startswith('Parameter,Value'):
+		    listing = listing[i+1:]
                     break
             for i in range(len(listing)):
                 try:
@@ -83,16 +77,10 @@ class NeatoSensorPacket(object):
                 # something weird happened bail
                 raise IOError('Get Accel Failed')
             listing = [s.strip() for s in line.splitlines()]
-            found_start_token = False
 
-            while len(listing) < 6 or not found_start_token:
-                if not found_start_token:
-                    for i,l in enumerate(listing):
-                        if l.startswith('Label,Value'):
-                            found_start_token = True
-                            listing = listing[i+1:]
-                            break
-                if len(listing) >= 6:
+            for i,l in enumerate(listing):
+                if l.startswith('Label,Value'):
+                    listing = listing[i+1:]
                     break
 
             for i in range(len(listing)):
@@ -146,7 +134,6 @@ class NeatoSensorPacket(object):
 
         try:
             remainder = ""
-            found_start_token = False
             line = self.response_dict['getldsscan']
             if line.find('Unknown Cmd') != -1:
                 # something weird happened. bail.
@@ -157,7 +144,6 @@ class NeatoSensorPacket(object):
                 entry = listing[i]
                 if entry.startswith('AngleInDegrees') and (len(listing)-1>i or line.endswith('\n')):
                     listing = listing[i+1:]
-                    found_start_token = True
                     break
 
             for i in range(len(listing)):
