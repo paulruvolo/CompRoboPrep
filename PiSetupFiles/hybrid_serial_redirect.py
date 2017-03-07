@@ -219,6 +219,9 @@ class Redirector:
                     # for control commands we always echo the command sent
                     if data.startswith('protocolpreference'):
                         self.use_udp = data[len('protocolpreference'):].strip() == 'True'
+                    elif data.startswith('keepalive'):
+                        # don't need to do anything... we have reset our timeout though by receiving this message
+                        pass
                     else:
                         self.serial_command_queue.put((data , data))
             except socket.error, msg:
@@ -413,7 +416,7 @@ it waits for the next connect.
             connection.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 	    connection.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 30)
 	    connection.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 15)
-	    #connection.settimeout(60)
+	    connection.settimeout(60)
             sys.stderr.write('Connected by %s\n' % (addr,))
             if ser != None:
                 try:
