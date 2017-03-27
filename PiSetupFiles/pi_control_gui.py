@@ -57,7 +57,7 @@ while True:
 		proc = subprocess.Popen(["iwconfig wlan0 | egrep Quality"],stdout=subprocess.PIPE,shell=True)
 		(linkquality, err) = proc.communicate()
 		if linkquality.find('=') >=0:
-			linkquality = int(linkquality[linkquality.find('=')+1:linkquality.find('/')])
+			linkquality = int(linkquality[linkquality.find('=')+1:linkquality.find('/')]) - 1
 		my_message(lcd, ssid + " " + str(linkquality) + "\n" + ip_address)
 	elif state == SELECT_NETWORK_MODE_STATE:
 		if network_mode == MANAGED_MODE:
