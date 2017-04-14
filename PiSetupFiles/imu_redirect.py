@@ -70,13 +70,18 @@ def connect_to_serial():
 		time.sleep(1)
 
 class Redirector:
-    def __init__(self, serial_instance, socket, ser_newline=None, net_newline=None, spy=False):
+    def __init__(self, serial_instance, socket, udp_socket, IP_address, ser_newline=None, net_newline=None, spy=False):
         self.serial = serial_instance
 	n = self.serial.inWaiting()
 	if n:
 		self.serial.read(n)
 		print "flushed serial port"
         self.socket = socket
+	#Set up a UDP socket and UDP_addr to send to
+	self.UDP_IP = IP_address
+	self.UDP_port = 7778
+	self.UDP_addr = (self.UDP_IP, self.UDP_port)
+	self.udp_sock = udp_socket
         self.ser_newline = ser_newline
         self.net_newline = net_newline
         self.spy = spy
@@ -112,8 +117,9 @@ class Redirector:
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
                     self._write_lock.acquire()
                     try:
-                        self.socket.sendall(data)           # send it over TCP
-                    finally:
+                       #self.socket.sendall(data)           # send it over UDP
+                    	self.udp_sock.sendto(data,self.UDP_addr)
+		    finally:
                         self._write_lock.release()
             except socket.error, msg:
                 sys.stderr.write('ERROR: %s\n' % msg)
@@ -125,7 +131,8 @@ class Redirector:
         """thread safe socket write with no data escaping. used to send telnet stuff"""
         self._write_lock.acquire()
         try:
-            self.socket.sendall(data)
+           #self.socket.sendall(data)
+	    self.socket.sendto(data,self.UDP_addr)
         finally:
             self._write_lock.release()
 
@@ -154,6 +161,7 @@ class Redirector:
 		else:
 		    remainder = ""
 
+		print "data is", repr(data)
 		if data.endswith('\n'):
 		    print "writing!" + data
 		    # these commands are special
@@ -368,11 +376,14 @@ it waits for the next connect.
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     srv.bind( ('', options.local_port) )
     srv.listen(1)
+    udp_sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+
     while True:
         try:
             sys.stderr.write("Waiting for connection on %s...\n" % options.local_port)
             connection, addr = srv.accept()
-	    connection.settimeout(60)
+	    print "addr is", addr
+	    #connection.settimeout(120)
 	    connection.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             sys.stderr.write('Connected by %s\n' % (addr,))
             if ser != None:
@@ -394,6 +405,8 @@ it waits for the next connect.
             r = Redirector(
                 ser,
                 connection,
+		udp_sock,
+		addr[0],
                 options.convert and ser_newline or None,
                 options.convert and net_newline or None,
                 options.spy,
