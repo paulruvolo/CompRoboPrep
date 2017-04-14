@@ -68,8 +68,11 @@ class Redirector:
         self.socket = tcp_socket
         self.sensor_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sensor_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
 	self.sensor_socket.bind(('0.0.0.0',7777))
+
+        # assume UDP until told otherwise
+        self.use_udp = True
+
         self.ser_newline = ser_newline
         self.net_newline = net_newline
         self._write_lock = threading.Lock()
@@ -144,7 +147,10 @@ class Redirector:
                 # self.write(self.sensor_packet)
 		# XXX: truncating packet to test UDP forwarding
                 packet_parser.parse_packet(self.sensor_packet)
-                self.sensor_socket.sendto(packet_parser.serialized_packet, (self.client_ip, 7777))
+                if self.use_udp:
+                    self.sensor_socket.sendto(packet_parser.serialized_packet, (self.client_ip, 7777))
+                else:
+                    self.socket.sendall(packet_parser.serialized_packet)
                 #print "sending sensor packet", "self.client_ip", self.client_ip, "length", len(self.sensor_packet)
 	    sleep_time = loop_start - time.time() + 0.1
             if sleep_time > 0:
@@ -211,7 +217,10 @@ class Redirector:
 
 		if data.endswith('\n'):
                     # for control commands we always echo the command sent
-                    self.serial_command_queue.put((data , data))
+                    if data.startswith('protocolpreference'):
+                        self.use_udp = data[len('protocolpreference'):].strip() == 'True'
+                    else:
+                        self.serial_command_queue.put((data , data))
             except socket.error, msg:
                 sys.stderr.write('ERROR: %s\n' % msg)
                 # probably got disconnected
