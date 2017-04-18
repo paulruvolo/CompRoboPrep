@@ -102,7 +102,7 @@ class Redirector:
         while self.alive:
             try:
                 data = self.serial.read(1)              # read one, blocking
-                n = self.serial.inWaiting()             # look if there is more
+		n = self.serial.inWaiting()             # look if there is more
                 if n:
                     data = data + self.serial.read(n)   # and get as much as possible
                 if data:
@@ -116,6 +116,7 @@ class Redirector:
                         data = net_newline.join(data.split(ser_newline))
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
                     self._write_lock.acquire()
+		    #print "data got from imu:", data
                     try:
                        #self.socket.sendall(data)           # send it over UDP
                     	self.udp_sock.sendto(data,self.UDP_addr)
@@ -125,6 +126,12 @@ class Redirector:
                 sys.stderr.write('ERROR: %s\n' % msg)
                 # probably got disconnected
                 break
+	    except OSError, msg:
+		sys.stderr.write('OSError: %s\n' %msg)
+		continue
+	    except serial.SerialException, msg:
+		sys.stderr.write('SerialException: %s\n' %msg)
+		continue
         self.alive = False
 
     def write(self, data):
