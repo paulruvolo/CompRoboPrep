@@ -15,13 +15,7 @@
 # Print the IP address
 _IP=$(hostname -I) || true
 echo $_IP
-sudo ~pi/make_interfaces_adhoc.sh 2>&1 | tee /etc/network/interfaces_adhoc
 sudo python ~pi/CompRoboPrep/PiSetupFiles/hybrid_serial_wrapper.py &
-#sudo python ~pi/tcp_serial_redirect_wrapper.py &
-#sudo ~pi/video_wrapper.sh &
-#sudo ~pi/start_jpg_stream.sh &
 sudo python ~pi/CompRoboPrep/PiSetupFiles/pi_control_gui.py &
-#/etc/switch.sh &
 sudo ~pi/detect_botvac.sh &
-sudo ~pi/echoserver-simple.py &
 exit 0
